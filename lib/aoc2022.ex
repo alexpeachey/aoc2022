@@ -23,7 +23,6 @@ defmodule AOC do
   def read_lines(filename) do
     filename
     |> File.stream!()
-    |> Stream.reject(&(&1 == ""))
     |> Enum.to_list()
   end
 end

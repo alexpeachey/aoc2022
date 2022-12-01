@@ -1,4 +1,4 @@
-defmodule AOC.Day01a do
+defmodule AOC.Day01b do
   use AOC
 
   @spec solution(String.t()) :: integer()
@@ -10,6 +10,7 @@ defmodule AOC.Day01a do
     |> Enum.map(fn elf -> Enum.map(elf, &String.to_integer/1) end)
     |> Enum.map(&Enum.sum/1)
     |> Enum.sort(:desc)
-    |> hd()
+    |> Enum.take(3)
+    |> Enum.sum()
   end
 end

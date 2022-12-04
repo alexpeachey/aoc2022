@@ -1,24 +1,34 @@
 defmodule AOC.Day02a do
   use AOC
 
-  @spec solution(String.t()) :: integer()
+  @type points :: integer()
+  @type raw_input :: list(String.t())
+  @type strategy_guide :: list(String.t())
+
+  @spec solution(path()) :: points()
   def solution(path) do
     path
     |> read_lines()
-    |> Enum.map(&String.trim/1)
-    |> Enum.map(&String.split(&1, " ", trim: true))
-    |> Enum.map(&points/1)
+    |> build_strategy_guide()
+    |> Enum.map(&determine_points/1)
     |> Enum.sum()
   end
 
-  @spec points([String.t()]) :: integer()
-  def points(["A", "X"]), do: 4
-  def points(["A", "Y"]), do: 8
-  def points(["A", "Z"]), do: 3
-  def points(["B", "X"]), do: 1
-  def points(["B", "Y"]), do: 5
-  def points(["B", "Z"]), do: 9
-  def points(["C", "X"]), do: 7
-  def points(["C", "Y"]), do: 2
-  def points(["C", "Z"]), do: 6
+  @spec build_strategy_guide(raw_input()) :: list(strategy_guide())
+  def build_strategy_guide(lines) do
+    lines
+    |> Enum.map(&String.trim/1)
+    |> Enum.map(&String.split(&1, " ", trim: true))
+  end
+
+  @spec determine_points(strategy_guide()) :: points()
+  def determine_points(["A", "X"]), do: 4
+  def determine_points(["A", "Y"]), do: 8
+  def determine_points(["A", "Z"]), do: 3
+  def determine_points(["B", "X"]), do: 1
+  def determine_points(["B", "Y"]), do: 5
+  def determine_points(["B", "Z"]), do: 9
+  def determine_points(["C", "X"]), do: 7
+  def determine_points(["C", "Y"]), do: 2
+  def determine_points(["C", "Z"]), do: 6
 end

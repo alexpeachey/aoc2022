@@ -21,7 +21,9 @@ defmodule Aoc2022.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:dialyxir, "~> 1.0", only: [:dev, :test], runtime: false}
+      {:dialyxir, "~> 1.0", only: [:dev, :test], runtime: false},
+      {:vivid, "~> 0.4.3"},
+      {:vivid_png, "~> 0.2.0"}
     ]
   end
 end

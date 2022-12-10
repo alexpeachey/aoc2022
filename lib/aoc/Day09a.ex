@@ -1,15 +1,15 @@
 defmodule AOC.Day09a do
   use AOC
 
-  @type direction() :: :U | :D | :L | :R
-  @type head() :: knot_location()
-  @type knot_location() :: {integer(), integer()}
-  @type motion() :: {direction(), step_count()}
-  @type raw_input() :: String.t()
-  @type rope() :: {tail(), head()}
-  @type step_count() :: integer()
-  @type tail() :: knot_location()
-  @type trail() :: [knot_location()]
+  @type direction :: :U | :D | :L | :R
+  @type head :: knot()
+  @type knot :: {integer(), integer()}
+  @type motion :: {direction(), step_count()}
+  @type raw_input :: String.t()
+  @type rope :: {tail(), head()}
+  @type step_count :: integer()
+  @type tail :: knot()
+  @type trail :: [knot()]
 
   @spec solution(path()) :: integer()
   def solution(filename) do
@@ -54,6 +54,9 @@ defmodule AOC.Day09a do
   def pull_tail({x, y}, {x, y}), do: {x, y}
   def pull_tail({x, ty}, {x, hy}), do: {x, ty + div(hy - ty, 2)}
   def pull_tail({tx, y}, {hx, y}), do: {tx + div(hx - tx, 2), y}
+
+  def pull_tail({tx, ty}, {hx, hy}) when abs(hx - tx) == 2 and abs(hy - ty) == 2,
+    do: {tx + div(hx - tx, 2), ty + div(hy - ty, 2)}
 
   def pull_tail({tx, ty}, {hx, hy}) when abs(hx - tx) == 2,
     do: {tx + div(hx - tx, 2), ty + (hy - ty)}

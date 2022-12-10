@@ -1,4 +1,11 @@
 %{
   "dialyxir": {:hex, :dialyxir, "1.2.0", "58344b3e87c2e7095304c81a9ae65cb68b613e28340690dfe1a5597fd08dec37", [:mix], [{:erlex, ">= 0.2.6", [hex: :erlex, repo: "hexpm", optional: false]}], "hexpm", "61072136427a851674cab81762be4dbeae7679f85b1272b6d25c3a839aff8463"},
+  "elixir_make": {:hex, :elixir_make, "0.7.1", "314f2a5450254db0446ba94cc1ba12a25b83b457f24aa9cc21c128cead5d03aa", [:mix], [{:castore, "~> 0.1", [hex: :castore, repo: "hexpm", optional: true]}], "hexpm", "0f1ad4787b4d7489563351cbf85c9221a852f5441364a2cb3ffd36f2fda7f7fb"},
   "erlex": {:hex, :erlex, "0.2.6", "c7987d15e899c7a2f34f5420d2a2ea0d659682c06ac607572df55a43753aa12e", [:mix], [], "hexpm", "2ed2e25711feb44d52b17d2780eabf998452f6efda104877a3881c2f8c0c0c75"},
+  "exprintf": {:hex, :exprintf, "0.2.1", "b7e895dfb00520cfb7fc1671303b63b37dc3897c59be7cbf1ae62f766a8a0314", [:mix], [], "hexpm", "20a0e8c880be90e56a77fcc82533c5d60c643915c7ce0cc8aa1e06ed6001da28"},
+  "matrex": {:hex, :matrex, "0.6.8", "ccb491e661bae7931ee6b0e68f5e1cd28528e5360a59bc3ab4d759b89be1701e", [:make], [{:elixir_make, "~> 0.4", [hex: :elixir_make, repo: "hexpm", optional: false]}], "hexpm", "043ef9fdd9809b012568915f2fc396ea5c5631fd792f75c1148f03d478d60901"},
+  "matrix": {:hex, :matrix, "0.3.2", "9c826bc3a1117bf5e1c5cdcf3a3d95456c93bc2e127a04e363e9fc90b724f784", [:mix], [{:exprintf, "~> 0.1", [hex: :exprintf, repo: "hexpm", optional: false]}], "hexpm", "f75adeb594a877ff49ff58a402e37c9474fb9172c997427a9b4b57ab10100f15"},
+  "png": {:hex, :png, "0.2.1", "b25c17c8dcdc40096d46ae2d7c2777c63fede48fa8c8312cc708c88554049d3b", [:rebar3], [], "hexpm", "279345e07108c604871a21f1c91f716810ab559af2b20d6f302e0a98265ef72e"},
+  "vivid": {:hex, :vivid, "0.4.3", "ea0abddb41a1ac778392c05f11c70118a5d36d71f0dee9e4b10bcb757a54f1c2", [:mix], [], "hexpm", "60195f5bb21d22acd2691cf01d4cc6809815b9c0cd369740d48ec9af8ddcfdf3"},
+  "vivid_png": {:hex, :vivid_png, "0.2.0", "44d8392aac274afb6ad1aa17a0f8546ce8aac129e14df15a1386a0f3ddaf545b", [:mix], [{:png, "~> 0.1", [hex: :png, repo: "hexpm", optional: false]}, {:vivid, "~> 0.4", [hex: :vivid, repo: "hexpm", optional: false]}], "hexpm", "b522fcbb709538b0dcfc1355174cd945d4465c6230b4dd615acc619076e52897"},
 }

@@ -1,40 +1,53 @@
-defmodule AOC.Day11b do
+defmodule AOC.Day11b_alt do
   use AOC
 
   @moduledoc """
-  Does not currently work. Likely needs more stupid math tricks.
-  UPDATE: This one likely does work now but takes a long time.
-  I had a bug when I switched from recursive rounds to iterative rounds.
-  I somehow had left the recursive call inside the interative loop!!
-  I'm going to let it run and if it eventually spits out the right answer
-  I'll turn it in for my star.
+  I saw @ancallan@genserver.social solved this and I went to look at his code.
+  You can see his code here: https://github.com/arlen-brower/aoc-2022/blob/main/11%20--%20Monkey%20Business/day_eleven.ex
+  I spent some time working out in my head why that math works and once I got it
+  I decided it was fair enough to implement it.
+  I don't like implementing things unless I understand them, but after talking it out
+  with myself I understood why it was legal to take the remainder from the lcm since
+  it will only change it when the item is divisible by all the divisors which means
+  the monkies will each have their checks still valid.
+  I also liked a lot of his naming better so I changed up my naming.
+  I'm not turning the the result from this, but if my takes forever version finishes
+  I'll turn it in.
   """
+
+  @type raw_input :: String.t()
 
   defmodule Monkey do
     use GenServer
-    defstruct [:id, :items, :operation, :test, :n, :pass, :fail, :inspections]
+    defstruct [:id, :items, :operation, :divisor, :lcm, :pass, :fail, :inspections]
 
     @type t :: %__MODULE__{
-            id: integer(),
-            items: [AOC.Day11b.item()],
-            operation: AOC.Day11b.operation(),
-            test: AOC.Day11b.test(),
-            n: magic_number(),
-            pass: integer(),
-            fail: integer(),
-            inspections: integer()
+            id: monkey_id(),
+            items: list(item()),
+            operation: operation(),
+            divisor: divisor(),
+            lcm: magic_number(),
+            pass: monkey_id(),
+            fail: monkey_id(),
+            inspections: monkey_business()
           }
-    @type magic_number :: integer() | nil
+    @type divisor :: integer()
     @type inspect_items_command :: :inspect_items
     @type inspect_items_response :: {:reply, :ok, t()}
+    @type item :: integer()
+    @type magic_number :: integer()
+    @type monkey_id :: integer()
+    @type monkey_business :: integer()
+    @type operation :: {worry_level(), worry_level(), operator()}
+    @type operator :: :+ | :*
     @type spy_command :: :spy
     @type spy_response :: {:reply, t(), t()}
     @type toss_item_command :: {:toss_item, AOC.Day11b.item()}
     @type toss_item_response :: {:reply, t(), t()}
+    @type worry_level :: integer() | :old
 
     @spec start_link(t()) :: GenServer.on_start()
     def start_link(%{id: id} = monkey) do
-      monkey = Map.put(monkey, :n, calculate_n(monkey.test))
       GenServer.start_link(__MODULE__, monkey, name: String.to_atom("monkey_#{id}"))
     end
 
@@ -43,10 +56,10 @@ defmodule AOC.Day11b do
 
     @spec inspect_items(t()) :: t()
     def inspect_items(monkey) do
-      GenServer.call(String.to_atom("monkey_#{monkey.id}"), :inspect_items, 30_000)
+      GenServer.call(String.to_atom("monkey_#{monkey.id}"), :inspect_items)
     end
 
-    @spec toss_item(integer(), AOC.Day11b.item()) :: :ok
+    @spec toss_item(integer(), item()) :: :ok
     def toss_item(monkey_id, item) do
       GenServer.call(String.to_atom("monkey_#{monkey_id}"), {:toss_item, item})
     end
@@ -61,6 +74,16 @@ defmodule AOC.Day11b do
       monkey = spy(monkey)
       GenServer.stop(String.to_atom("monkey_#{monkey.id}"))
       monkey
+    end
+
+    @spec calculate_lcm(list(t())) :: list(t())
+    def calculate_lcm(monkeys) do
+      lcm =
+        monkeys
+        |> Enum.map(& &1.divisor)
+        |> Enum.product()
+
+      Enum.map(monkeys, &Map.put(&1, :lcm, lcm))
     end
 
     @spec handle_call(
@@ -83,86 +106,44 @@ defmodule AOC.Day11b do
       {:reply, :ok, Map.put(monkey, :items, items)}
     end
 
-    def handle_call({:spy}, _from, monkey) do
+    def handle_call(:spy, _from, monkey) do
       {:reply, monkey, monkey}
     end
 
-    @spec inspect_item(t(), AOC.Day11b.item()) :: :ok
+    @spec inspect_item(t(), item()) :: :ok
     def inspect_item(monkey, item) do
-      item = apply_operation(item, monkey.operation)
+      item =
+        item
+        |> worry(monkey.operation)
+        |> relieve(monkey.lcm)
 
-      if test_worry_level(item, monkey.test, monkey.n) do
+      if test_worry_level(item, monkey.divisor) do
         toss_item(monkey.pass, item)
       else
         toss_item(monkey.fail, item)
       end
     end
 
-    @spec apply_operation(AOC.Day11b.item(), AOC.Day11b.operation()) :: AOC.Day11b.item()
-    def apply_operation(item, {:old, :old, :+}), do: item + item
-    def apply_operation(item, {:old, :old, :*}), do: item * item
-    def apply_operation(item, {:old, worry_level, :+}), do: item + worry_level
-    def apply_operation(item, {:old, worry_level, :*}), do: item * worry_level
+    @spec worry(item(), operation()) :: item()
+    def worry(item, {:old, :old, :+}), do: item + item
+    def worry(item, {:old, :old, :*}), do: item * item
+    def worry(item, {:old, worry_level, :+}), do: item + worry_level
+    def worry(item, {:old, worry_level, :*}), do: item * worry_level
 
-    @spec test_worry_level(AOC.Day11b.item(), AOC.Day11b.test(), magic_number()) :: boolean()
-    def test_worry_level(item, test, nil) do
-      item
-      |> Integer.to_string()
-      |> String.last()
-      |> String.to_integer()
-      |> rem(test)
-      |> Kernel.==(0)
-    end
+    @spec relieve(item(), magic_number()) :: item()
+    def relieve(item, lcm), do: rem(item, lcm)
 
-    def test_worry_level(item, test, _n) when item < test * 10 do
-      rem(item, test) == 0
-    end
-
-    def test_worry_level(item, test, n) do
-      [front, last] =
-        item
-        |> Integer.to_string()
-        |> String.split_at(-1)
-        |> Tuple.to_list()
-        |> Enum.map(&String.to_integer/1)
-
-      if n < test - n do
-        test_worry_level(front + last * n, test, n)
-      else
-        test_worry_level(front - last * (test - n), test, n)
-      end
-    end
-
-    @spec calculate_n(AOC.Day11b.test()) :: magic_number()
-    def calculate_n(2), do: nil
-    def calculate_n(5), do: nil
-    def calculate_n(test), do: calculate_n(test, 2)
-
-    @spec calculate_n(integer(), integer()) :: magic_number()
-    def calculate_n(test, k) do
-      if rem(test * k + 1, 10) == 0 do
-        n = div(test * k + 1, 10)
-        min(n, test - n)
-      else
-        calculate_n(test, k + 1)
-      end
-    end
+    @spec test_worry_level(item(), divisor()) :: boolean()
+    def test_worry_level(item, divisor), do: rem(item, divisor) == 0
   end
 
-  @type item :: integer()
-  @type monkey_business :: integer()
-  @type operation :: {worry_level(), worry_level(), operator()}
-  @type operator :: :+ | :*
-  @type raw_input :: String.t()
-  @type test :: integer()
-  @type worry_level :: integer() | :old
-
-  @spec solution(path()) :: monkey_business()
+  @spec solution(path()) :: Monkey.monkey_business()
   def solution(path) do
     path
     |> File.read!()
     |> String.split("\n\n", trim: true)
     |> Enum.map(&parse_monkey/1)
+    |> Monkey.calculate_lcm()
     |> Enum.map(&start_monkey/1)
     |> engage_in_monkey_business(10_000)
     |> Enum.sort_by(& &1.inspections, :desc)
@@ -179,11 +160,9 @@ defmodule AOC.Day11b do
 
   @spec engage_in_monkey_business(list(Monkey.t()), integer()) :: list(Monkey.t())
   def engage_in_monkey_business(monkeys, rounds) do
-    Enum.each(1..rounds, fn r ->
+    Enum.each(1..rounds, fn _ ->
       monkeys
       |> Enum.map(&Monkey.inspect_items/1)
-
-      if rem(r, 100) == 0, do: IO.puts("Round #{r} complete")
     end)
 
     Enum.map(monkeys, &Monkey.stop/1)
@@ -191,21 +170,22 @@ defmodule AOC.Day11b do
 
   @spec parse_monkey(raw_input()) :: Monkey.t()
   def parse_monkey(raw_input) do
-    [monkey_identifier, starting_items, operation, test, pass, fail] =
+    [monkey_id, starting_items, operation, divisor, pass, fail] =
       String.split(raw_input, "\n", trim: true)
 
     %Monkey{
-      id: parse_monkey_identifier(monkey_identifier),
+      id: parse_monkey_id(monkey_id),
       items: parse_items(starting_items),
       operation: parse_operation(operation),
-      test: parse_test(test),
+      divisor: parse_divisor(divisor),
+      lcm: 1,
       pass: parse_pass(pass),
       fail: parse_fail(fail),
       inspections: 0
     }
   end
 
-  @spec parse_fail(raw_input()) :: integer()
+  @spec parse_fail(raw_input()) :: Monkey.monkey_id()
   def parse_fail(pass) do
     pass
     |> String.split("monkey ", trim: true)
@@ -213,7 +193,7 @@ defmodule AOC.Day11b do
     |> String.to_integer()
   end
 
-  @spec parse_pass(raw_input()) :: integer()
+  @spec parse_pass(raw_input()) :: Monkey.monkey_id()
   def parse_pass(pass) do
     pass
     |> String.split("monkey ", trim: true)
@@ -221,15 +201,15 @@ defmodule AOC.Day11b do
     |> String.to_integer()
   end
 
-  @spec parse_test(raw_input()) :: test()
-  def parse_test(test) do
+  @spec parse_divisor(raw_input()) :: Monkey.divisor()
+  def parse_divisor(test) do
     test
     |> String.split("by ", trim: true)
     |> List.last()
     |> String.to_integer()
   end
 
-  @spec parse_operation(raw_input()) :: operation()
+  @spec parse_operation(raw_input()) :: Monkey.operation()
   def parse_operation(operation) do
     [w1, op, w2] =
       operation
@@ -240,15 +220,15 @@ defmodule AOC.Day11b do
     {parse_worry_level(w1), parse_worry_level(w2), parse_operator(op)}
   end
 
-  @spec parse_operator(raw_input()) :: operator()
+  @spec parse_operator(raw_input()) :: Monkey.operator()
   def parse_operator("+"), do: :+
   def parse_operator("*"), do: :*
 
-  @spec parse_worry_level(raw_input()) :: worry_level()
+  @spec parse_worry_level(raw_input()) :: Monkey.worry_level()
   def parse_worry_level("old"), do: :old
   def parse_worry_level(worry_level), do: String.to_integer(worry_level)
 
-  @spec parse_items(raw_input()) :: list(item())
+  @spec parse_items(raw_input()) :: list(Monkey.item())
   def parse_items(starting_items) do
     starting_items
     |> String.split(": ", trim: true)
@@ -257,8 +237,8 @@ defmodule AOC.Day11b do
     |> Enum.map(&String.to_integer/1)
   end
 
-  @spec parse_monkey_identifier(raw_input()) :: integer()
-  def parse_monkey_identifier(monkey_identifier) do
+  @spec parse_monkey_id(raw_input()) :: Monkey.monkey_id()
+  def parse_monkey_id(monkey_identifier) do
     monkey_identifier
     |> String.split(" ", trim: true)
     |> List.last()
